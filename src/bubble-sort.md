@@ -56,15 +56,14 @@ This gives us a hint about how to get the whole list sorted. In the `list-iterat
             
 Essentially, what this is doing is it is recursively calling the `list-iteration` function on our list, but each time it is dropping the last element of the list. Then it passes in the shortened list to the next recursive call. This seems to get us started, except that: each run of `list-iteration` returns an entire list. If we combine all those lists together, we don't get a sorted list, we get a series of partially sorted lists strung together. What we actually want is the final element of each run (because we know that element is sorted). So what we need is some sort of "work-done-so-far" container:
 
-   // list -> sorted list
-   define: list-sort ( list ):
-       local define: list-sort ( list acc ):
-           if ( list.length <= 1 ): return list ... acc
-           else: ... acc 
-               list = list-iteration ( list )
-               list-sort ( list[:list.length] ... acc ( list ) )
+    // list -> sorted list
+    define: list-sort ( list ):
+        local define: list-sort ( list acc ):
+            if ( list.length <= 1 ): return list ... acc
+            else: ... acc 
+                list = list-iteration ( list )
+                list-sort ( list[:list.length] ... acc ( list ) )
         list-sort ( list ... )
-
 
 
 **Optimizations:**
