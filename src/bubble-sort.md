@@ -58,29 +58,24 @@ Essentially, what this is doing is it is recursively calling the `list-iteration
 
     // list -> sorted list
     define: list-sort ( list ):
-        local define: list-sort ( list acc ):
-            if ( list.length <= 1 ): return list ... acc
-            else: ... acc 
+        local define: list-sort ( list, slist ):
+            if ( list.length <= 1 ): return list + slist // append the last item to the front of slist
+            else:
                 list = list-iteration ( list )
-                list-sort ( list[:list.length] ... acc ( list ) )
-        list-sort ( list ... )
+                slist = list[final] + slist // append the last item on the list to the front of slist
+                list-sort ( list[:list.length], slist )
+        list-sort ( list, [] ) // start with an emply slist
 
+What we're doing now is using the `slist` item to build up our sorted list, starting with the final item of the first run of `list-iteration` and adding a new item to the front of `slist` with each run of `list-iteration` until we have only one item left in our list (at which point, we add that to the front of `slist` and return the result. This completes the sort algorithm.
 
 **Optimizations:**
 There are two special cases we've already identified:
 - If the list only has one element (or, really, if it has no elements), just return the list.
 - If the list is already sorted, we should also just return the list
 
-The first optimization just requires inserting an "if" clause in the outer-loop:
-    define: outer-loop:
-        if list.lenght => 1: return list
-        else:
-            start k = list.lenght
-            while k > 0:
-                peform inner-loop
-                k--
+The first case is taken care of naturally by the recursive structure of our program because it will trigger the base case and simply return itself. So simple enough.
 
-The second optimization is a bit trickier, it requires some sort of state variable. One way to do this would be to put that variable in the main function and increment it for each swap performed by the inner loop. If we make it all the way to the end and the variable is still zero, we can just return the list as already sorted:
+The second case is a bit trickier and requires some sort of state variable.
 
     define: bubble-sort ( list ):
         start: swaps = 0
