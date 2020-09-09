@@ -1,27 +1,71 @@
 # Bubble Sort
 
-A bubble sort is a very simple sorting algorithm which iterates over a list, swapping adjacent elements as necessary, until it reaches the end. It then repeats this process until the list is sorted. After the first sort, the final element should be in the right place, so the second time through it only needs to go `n-1` iterations through the list. The next time through, the final two elements are correct, so then it repeats until the `n-2`nd element, and so on and so forth until we have sorted all the elements.
+A bubble sort is a very simple sorting algorithm which iterates over a list, swapping adjacent elements as necessary, until it reaches the end. It then repeats this process until the list is sorted. 
+
+This process essentially treats the list as two distict types of data. The first is the list itself, which is an array of some arbitrary length. The second is the given pair of items being considered, which is essentially a tuple. Each tuple is sorted individually and reinserted into the list, then another pair is considered, then another until the end of the list is reached.
+
+Of course, very rarely will one pass through the list result in a full sort. The complexity of this algorithm is that we need to keep running over the list until it is fully sorted. The easiest way to do this is just to complete `n = list.length` passes over the entire list, but there are several ways this can be optimized.
+
+The first optimization is that after the first sort, the final element should be in the right place, so the second time through it only needs to go `n-1` iterations through the list. The next time through, the final two elements are correct, so then it repeats until the `n-2`nd element, and so on and so forth until we have sorted all the elements. So we want some sort of state-tracker that tells us how many fewer elements we need to consider in the next pass through the list.
+
+Additionally, we want to make some sort of allowance for a case in which the list is already sorted. This may happen because the list was sorted to begin with (so we didn't need todo anything) or because the list was close to sorted and after a short number of iterations the sorting is complete and we don't need to continue working. We'll consider this in a bit.
 
 ## Pseudocode:
 
-**Tests:**
+### Tests:
     expect: bubble-sort (4 2 1 6 3 5) -> [1,2,3,4,5,6]
     expect: bubble-sort (1 2 3 4 5 6) -> [1,2,3,4,5,6] // case: already sorted
     expect: bubble-sort (1) -> [1] // case: single element should return itself
     
-**Function**
-    define: bubble-sort ( list ):
-        define: outer-loop:
-            start k = list.length
-            while k > 0:
-                perform inner-loop
-                k--
-        define: inner-loop (list):
-            for each i in list:
-                if i < i-1, swap, then i++
-                else, i++
+### Tuple Data Type:
 
-The `outer-loop` is taking advantage of the fact that each time through the sorting process, we get one more element at the end of the list that is in the right order. So each time, we can iterate one less pair because we know that the final `n` element are sorted. The inner loop is then doing the pair comparison and sorting for us. One thing to note: because we're assuming the final element will be sorted after our first run, we're comparing each element with the item before it. This won't work for our first element in the list, so we should start iterating at item [1] in our array, not item [0].
+Let's start with the "tuple" data type: the individual pairs that are being passed in for comparison.
+
+    // tuple -> tuple
+    define: tuple-sort ( x, y ):
+        if ( x < y ): return ( x, y )
+        else: return ( y, x )
+        
+That's it for the sorting of the pairs.
+
+### Iterating Through the List:
+
+Now, let's consider how we pass over the whole list itself:
+
+    // list -> list
+    define: list-iteration ( list ):
+        if ( list.length <= 1 ): return list
+        else: list[0,1] =  tuple-sort ( list[0], list[1] )
+            list-iteration ( list[1:] )
+
+This is a simple recursive function for iterating over a list. The base case is when the list contains only one element (so there is no tuple to compare). This will also catch an "empty" list, which contains nothing to compare or sort. In those cases, the "list" will simply be returned, which will pass back out through the existing function calls and give us our list as returned from all the tuple-sorts in this iteration.
+
+### Making Multiple Passes Over the List:
+
+The `list-iteration` function gets us through one pass over the list. But one pass will rarely get the list sorted. Instead, we will need to keep going through the list until all the elements are sorted.
+
+Definitionally, because of the way a bubble sort works, for each iteration, `i`, over a list of length `l`, the `l-i`th element will be sorted. In other words, after the first iteration, the last element will be sorted. After the second iteration, the second to last element will be sorted, and so on. This is because in each tuple comparison, the larger element is returned second (closer to the end of the list). The next tuple pair will include this larger element again, so again if it is the larger of the pair it will be returned second. As this process repeats, the largest element in the list will always end up the second element returned by the `tuple-sort` function. By the time you get through the list, it will therefore be the final element returned by the final `tuple-sort` comparison.
+
+This gives us a hint about how to get the whole list sorted. In the `list-iteration` function we worked through the list from the beginning to the end. In the `list-sort` function, we can do the reverse, working from the end to the beginning:
+
+    // list -> sorted list
+    define: list-sort ( list ):
+        if ( list.length <= 1 ): return list
+        else: list = list-iteration ( list )
+            list-sort ( list[:list.length] )
+            
+Essentially, what this is doing is it is recursively calling the `list-iteration` function on our list, but each time it is dropping the last element of the list. Then it passes in the shortened list to the next recursive call. This seems to get us started, except that: each run of `list-iteration` returns an entire list. If we combine all those lists together, we don't get a sorted list, we get a series of partially sorted lists strung together. What we actually want is the final element of each run (because we know that element is sorted). So what we need is some sort of "work-done-so-far" container:
+
+   // list -> sorted list
+   define: list-sort ( list ):
+       local define: list-sort ( list acc ):
+           if ( list.length <= 1 ): return list ... acc
+           else: ... acc 
+               list = list-iteration ( list )
+               list-sort ( list[:list.length] ... acc ( list ) )
+        list-sort ( list ... )
+
+
 
 **Optimizations:**
 There are two special cases we've already identified:
