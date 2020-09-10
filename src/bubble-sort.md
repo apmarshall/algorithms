@@ -75,43 +75,27 @@ There are two special cases we've already identified:
 
 The first case is taken care of naturally by the recursive structure of our program because it will trigger the base case and simply return itself. So simple enough.
 
-The second case is a bit trickier and requires some sort of state variable.
+The second case is a bit trickier and requires some sort of state variable. The easiest way to do this with a boolean that tracks whether any swaps have been made in the previous iteration through the list. This boolean will be start as `false` (meaning no swaps have been made) and be flipped by the `tuple-sort` method whenever it makes a swap. In other words, it's going to stretch across our entire class here, not just within one of the individual functions:
 
-    define: bubble-sort ( list ):
-        start: swaps = 0
-        define: outer-loop ( list ):
-            if list.length >= 1: return list
-            else if: k = list.length - 1 && swaps = 0: return list
+    define: bubble-sort (list):
+        local define: list-sort ( list, slist, needed-sort ):
+            if ( list.length <=1 || needed-sort = false ): return list + slist
             else:
-                start k = list.length
-                while k > 0:
-                    perform inner-loop
-                    k--
-        define: inner-loop (list):
-            for each i in list:
-                if i < i-1, swap, then swaps++, then i++
-                else, i++
+                list = list-iteration ( list, false ) // set needed-sort to false when starting the list-iteration run
+                slist = list[final] + slist
+                list-sort ( list[:list.length], slist, needed-sort )
+         list-sort ( list, [], true ) // start with an empty slist and with needed-sort set to true so we go through at least one iteration
+         
+         local define: list-iteration ( list, needed-sort ):
+             if (list.length <=1): return list
+             else: list[0,1] = tuple-sort( list[0], list[1], needed-sort )
+                 list-iteration( list[1:]
+                 
+          local define: tuple-sort( x, y, needed-sort ):
+             if ( x < y ): return ( x, y )
+             else: 
+                 needed-sort = true
+                 return ( y, x )
 
-So basically: if we make it through the inner-loop once without making a single swap, send us back the already sorted list. Done.
-
-But wait: what if the list is only off by one and after the first iteration, it's sorted? Or what if it's sorted after the second iteration? We could ostensibly use our state variable to catch these cases, too, and return the list after the first pass through with no additional swaps. Here's what that might look like:
-
-    define: bubble-sort (list ):
-        start: t = 0 // times through the outer loop
-        start: swaps = 1 // explained in a moment
-        define: outer-loop ( list ):
-            if list.length >= 1: return list
-            else if: k = list.length - t && swaps = 0: return list
-            else: 
-                start k = list.length
-                swaps = 0
-                while k > 0:
-                    perform inner-loop
-                    k--
-        define: inner-loop ( list ):
-            for each i in list:
-                if i < i-1, swap, then swaps++, then i++
-                else, i++
-                
-Thing to note here: if we start our swaps at zero in this case, we'll always get the list back because we'll match the second conditional in the outer-loop on the first pass. So we start swaps at 1, then set it to zero when we start the fork that calls the inner-loop.
+Essentially, we're starting off with `needed-sort` set to true, guaranteeing at least one iteration through the list (unless the list is only one element long). When we start the iteration, we set `needed-sort` to false and if we ever perform a sort, `tuple-sort` changes it to true. This means that after every iteration that we have performed a swap, we are guaranteed at least one more iteration over the list. After the first iteration in which no swaps are peformed (indicating that the list is fully sorted), we'll trigger the base case and exit, returning our sorted list.
 
