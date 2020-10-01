@@ -57,5 +57,24 @@ Ok, so that's the overall function, but now what about `insert`?
     define: insert ( list, item )
         if ( list.length == 0 ): return ( list + item ) // append the item to the end of the list
         else:
-            
+            if ( list[1] > item ): return ( item + list ) // add the item to the front of the list
+            else:
+                insert ( rest.list, item ) // repeat the recursive call with the next indexed item in the list
+                
+This function needs a tracker to keep the pre-index list in tact upon return. As it's currently written, it will return the list from our inserted item till the end.
+
+    // list + item -> list
+    define: insert ( list, item )
+        local define: insert ( list, slist, plist )
+            if ( list.length == 0 ): return ( plist + item ) // append the item to the end of the plist
+            else:
+                if ( list [1] > item ): return ( plist + item + list )
+                else:
+                    plist = plist + list[1]
+                    insert ( rest.list, item, plist )
+        insert ( list, item, [] )
+        
+We are now tracking the part of the list prior to our "point" at which we are trying to insert the item. This way, when the function returns, it will return the entire original list with the item inserted.
+
+And that's it! This should now return a fully sorted list.
             
