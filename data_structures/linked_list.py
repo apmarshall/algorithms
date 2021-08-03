@@ -12,7 +12,8 @@ class Linked_List:
                 return search(list[1:], item)
                 
     def insert(list, item):
-        __init__(self, item, list)
+        newList = Linked_List(item, list)
+        return newList
     
     def predecessor(list, item)
         if ((list == NULL) || (list[0].next == NULL)):
