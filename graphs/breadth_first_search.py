@@ -1,6 +1,8 @@
+disc_q = []
+processed = []
+parent = []
+
 def bfs(graph, start):
-    disc_q = []
-    proccessed = []
     disc_q + start
     while q != []:
         v = q[0]
@@ -13,6 +15,19 @@ def bfs(graph, start):
                 process_edge(v, y)
             if (index(disc_q, y) == null):
                 disc_q + y
+                parent[y] = v
             cands = cands.remove(y)
         proces_vertex_late(v)
         q = q.remove(v)
+        
+def findPath(start, end):
+    if ((start == end) || (end == -1)):
+        return start
+    else:
+        return findPath(start, parent[end])
+        
+def connectedComponents(graph):
+    
+    
+def twoColorGraph(graph):
+        
