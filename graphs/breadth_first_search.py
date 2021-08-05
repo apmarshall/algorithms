@@ -3,18 +3,16 @@ def bfs(graph, start):
     proccessed = []
     disc_q + start
     while q != []:
-        i = 0
-        v = q[i]
+        v = q[0]
         process_vertex_early(v)
         processed + v
         cands = graph.edges[v]
         while cands != []:
-            j = 0
-            y = cands[j]
+            y = cands[0]
             if ((index(processed, y) == null) || (graph.Directed == True)):
                 process_edge(v, y)
             if (index(disc_q, y) == null):
                 disc_q + y
-            j++
+            cands = cands.remove(y)
         proces_vertex_late(v)
-        i++
+        q = q.remove(v)
